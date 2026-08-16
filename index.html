@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识大侦探 - 未知的世界</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'detective-dark': '#f8f9fa',
+                        'detective-medium': '#e9ecef',
+                        'detective-light': '#f1f3f5',
+                        'detective-accent': '#e94560',
+                        'detective-gold': '#f5a623',
+                        'detective-green': '#4ecca3',
+                        'detective-purple': '#9b59b6',
+                        'fog-color': 'rgba(20, 20, 40, 0.85)',
+                    },
+                    fontFamily: {
+                        'detective': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== 基础样式 ===== */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #333333;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+        .nav-tab {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            padding: 10px 15px;
+        }
+        .nav-tab.active {
+            border-bottom-color: #e94560;
+            color: #e94560;
+        }
+        .page-content { display: block; }
+        .page-content.hidden { display: none !important; }
+        .content-section { display: block; }
+        .content-section.hidden { display: none !important; }
+        .fade-in { animation: fadeInUp 0.5s ease-out; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .notification.success { background: linear-gradient(135deg, #4ecca3, #27ae60); }
+        .notification.error { background: linear-gradient(135deg, #e94560, #c0392b); }
+        .notification.info { background: linear-gradient(135deg, #0f3460, #2980b9); }
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(0,0,0,0.05);
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .btn-secondary:hover { background: rgba(0,0,0,0.1); }
+        .admin-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        .admin-toggle {
+            background: linear-gradient(135deg, #f5a623, #e94560);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 5px 20px rgba(245, 166, 35, 0.4);
+            transition: all 0.3s ease;
+        }
+        .admin-toggle:hover { transform: scale(1.1) rotate(90deg); }
+        .admin-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            min-width: 250px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+        .admin-menu.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .admin-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .admin-menu-item:hover { background: rgba(233, 69, 96, 0.2); }
+        .admin-menu-item i { margin-right: 10px; width: 20px; text-align: center; }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .form-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #e94560;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #f5a623;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .action-card { transition: all 0.2s ease; }
+        .action-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .action-card.done { opacity: 0.4; pointer-events: none; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; margin: 4px auto 0; }
+        .action-card.done .status-dot { background: #4ecca3; }
+        @keyframes v2FireFlicker {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05, 0.95) rotate(1deg); }
+            50% { transform: scale(0.95, 1.05) rotate(-1deg); }
+            75% { transform: scale(1.02, 0.98) rotate(0.5deg); }
+        }
+        @keyframes v2FogDrift {
+            0% { transform: translateX(-3%) translateY(0); opacity: 0.7; }
+            50% { transform: translateX(3%) translateY(-1%); opacity: 0.5; }
+            100% { transform: translateX(-3%) translateY(0); opacity: 0.7; }
+        }
+        
+        /* ===== 登记台样式 ===== */
+        .bounty-sub-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 12px;
+        }
+        .bounty-sub-tab {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #6b7280;
+        }
+        .bounty-sub-tab:hover {
+            background: rgba(245, 166, 35, 0.08);
+            border-color: rgba(245, 166, 35, 0.2);
+            color: #f5a623;
+        }
+        .bounty-sub-tab.active {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.12), rgba(233, 69, 96, 0.08));
+            border-color: #f5a623;
+            color: #e94560;
+        }
+        .bounty-sub-content { display: none; }
+        .bounty-sub-content.active { display: block; }
+        .bounty-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .bounty-card {
+            background: rgba(245, 166, 35, 0.04);
+            border: 1px solid rgba(245, 166, 35, 0.12);
+            border-radius: 12px;
+            padding: 14px 16px;
+            transition: all 0.3s ease;
+        }
+        .bounty-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 166, 35, 0.08);
+            border-color: rgba(245, 166, 35, 0.3);
+        }
+        .bounty-card.top-rank {
+            border-color: rgba(245, 166, 35, 0.35);
+            background: rgba(245, 166, 35, 0.06);
+        }
+        .bounty-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #f5a623, #e94560);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .bounty-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .bounty-status-pending { background: rgba(245, 166, 35, 0.15); color: #b8860b; }
+        .bounty-status-progress { background: rgba(78, 204, 163, 0.15); color: #0d7a5a; }
+        .bounty-status-completed { background: rgba(155, 89, 182, 0.15); color: #7d3c98; }
+        .bounty-points-display {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f5a623, #e94560);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .bamboo-slip {
+            background: linear-gradient(135deg, #2d8659 0%, #3a9c6a 30%, #2d8659 70%, #247a4e 100%);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 20px 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .bamboo-slip-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: #f0fff4;
+            padding: 10px 14px;
+            width: 100%;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .bamboo-slip-input::placeholder { color: rgba(240, 255, 244, 0.5); }
+        .bamboo-slip-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .bamboo-slip-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+            font-family: 'KaiTi', '楷体', serif;
+            letter-spacing: 1px;
+        }
+        .scrollbar-custom::-webkit-scrollbar { width: 6px; }
+        .scrollbar-custom::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); border-radius: 10px; }
+        .scrollbar-custom::-webkit-scrollbar-thumb { background: rgba(233, 69, 96, 0.4); border-radius: 10px; }
+        .task-list-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+        .task-list-item:hover {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(245, 166, 35, 0.15);
+        }
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .task-checkbox.checked { background: #4ecca3; border-color: #4ecca3; }
+        .task-checkbox.checked::after { content: '✓'; color: white; font-size: 14px; font-weight: bold; }
+        .product-card {
+            background: linear-gradient(135deg, rgba(78, 204, 163, 0.06), rgba(245, 166, 35, 0.06));
+            border: 1px solid rgba(78, 204, 163, 0.15);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 20px rgba(78, 204, 163, 0.1);
+            border-color: rgba(78, 204, 163, 0.3);
+        }
+        .product-image-placeholder {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #16213e, #0f3460);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #4ecca3;
+        }
+        .product-cost-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f5a623, #e94560);
+            color: white;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .timeline-container {
+            position: relative;
+            padding-left: 24px;
+        }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 4px;
+            bottom: 4px;
+            width: 2px;
+            background: linear-gradient(180deg, #f5a623, #e94560, #4ecca3);
+            border-radius: 1px;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 14px;
+            padding-left: 16px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f5a623;
+            border: 2px solid white;
+            box-shadow: 0 0 6px rgba(245, 166, 35, 0.3);
+        }
+        .timeline-item.completed::before { background: #4ecca3; box-shadow: 0 0 6px rgba(78, 204, 163, 0.3); }
+        .timeline-item.in-progress::before {
+            background: #e94560;
+            box-shadow: 0 0 6px rgba(233, 69, 96, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== 导航 Header ===== -->
+<header class="glass-card m-4 p-4 sticky top-0 z-50">
+    <div class="container mx-auto flex flex-wrap items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <i class="fas fa-search text-2xl text-detective-gold"></i>
+            <h1 class="text-2xl font-bold">知识大侦探</h1>
+            <span class="text-sm text-gray-400">未知的世界</span>
+            <span id="edit-mode-indicator" class="hidden ml-3 px-3 py-1 bg-yellow-600 text-white rounded-full text-xs">
+                <i class="fas fa-edit mr-1"></i>编辑模式
+            </span>
+        </div>
+        <nav class="flex flex-wrap space-x-6 text-sm">
+            <div class="nav-tab active" data-page="main-hub"><i class="fas fa-home mr-1"></i>首页</div>
+            <div class="nav-tab" data-page="guardian"><i class="fas fa-fire mr-1"></i>守护希望之灯</div>
+            <div class="nav-tab" data-page="rescue"><i class="fas fa-hands-helping mr-1"></i>拯救行动</div>
+            <div class="nav-tab" data-page="detective"><i class="fas fa-user-shield mr-1"></i>名侦探足迹</div>
+        </nav>
+    </div>
+</header>
+
+<!-- ===== 主内容 ===== -->
+<main class="container mx-auto px-4 pb-8">
+
+    <!-- 引导动画 -->
+    <div id="v2-intro" style="position:fixed;inset:0;z-index:9999;background:#0a0a0a;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,#1a1a1a 0%,#0a0a0a 60%,#050505 100%);"></div>
+        <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 20% 30%, rgba(40,40,60,0.4) 0%, transparent 50%),radial-gradient(circle at 70% 60%, rgba(30,30,50,0.3) 0%, transparent 50%),radial-gradient(circle at 50% 80%, rgba(20,20,40,0.3) 0%, transparent 50%);opacity:0.3;animation:v2FogDrift 12s ease-in-out infinite;"></div>
+        <div style="position:relative;z-index:2;text-align:center;">
+            <div style="font-size:80px;animation:v2FireFlicker 0.8s ease-in-out infinite;margin-bottom:20px;">🔥</div>
+            <p style="color:rgba(245,166,35,0.8);font-size:28px;font-weight:300;letter-spacing:0.3em;font-family:'KaiTi','楷体',serif;">知识大侦探</p>
+            <p style="color:rgba(200,200,220,0.3);font-size:14px;letter-spacing:0.4em;font-family:'KaiTi','楷体',serif;margin-top:12px;">起初，是一片迷雾</p>
+        </div>
+        <p style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);color:rgba(245,166,35,0.5);font-size:14px;letter-spacing:0.25em;font-family:'KaiTi','楷体',serif;text-align:center;max-width:500px;line-height:1.8;z-index:3;">请记住，唯有善心善行才是拨开迷雾照亮路径的明灯</p>
+        <button onclick="skipIntro()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#666;padding:6px 16px;border-radius:999px;font-size:12px;cursor:pointer;transition:all 0.3s ease;z-index:10;" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#666'">跳过 ›</button>
+    </div>
+
+    <!-- ===== 首页 ===== -->
+    <div id="main-hub" class="page-content fade-in">
+        <div class="glass-card mb-6" style="position:relative;overflow:hidden;border-radius:16px;min-height:280px;background:linear-gradient(180deg,#ffffff 0%,#f8faf8 40%,#f0f5f0 70%,#e8efe8 100%);">
+            <div id="camp-fire" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);text-align:center;cursor:pointer;" onclick="goToSection('guardian', 'charity-lamp')" title="希望之灯打卡">
+                <div style="font-size:48px;animation:v2FireFlicker 0.8s ease-in-out infinite;">🔥</div>
+                <div style="margin-top:8px;font-size:14px;color:#5a4a3a;font-weight:600;background:rgba(255,255,255,0.7);padding:4px 12px;border-radius:999px;white-space:nowrap;">希望之灯打卡</div>
+            </div>
+            <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);text-align:center;width:90%;max-width:600px;">
+                <p style="font-size:14px;color:#3a5a3a;font-family:'KaiTi','楷体',serif;line-height:1.8;opacity:0.7;">
+                    请记住，在探索发展的道路上，唯有善心善行才是拨开迷雾照亮路径的明灯
+                </p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card p-6 text-center cursor-pointer hover:border-detective-gold/40 transition" style="border:1px solid rgba(245,166,35,0.15);" onclick="goToSection('guardian', 'charity-lamp')">
+                <div style="font-size:40px;margin-bottom:12px;">🔥</div>
+                <div class="font-bold text-detective-gold text-lg mb-2">每日善行打卡</div>
+                <div class="text-3xl font-bold text-detective-gold" id="home-today-points">0</div>
+                <div class="text-xs text-gray-400 mt-1">今日打卡成就</div>
+            </div>
+            <div class="glass-card p-6 text-center cursor-pointer hover:border-detective-accent/40 transition" style="border:1px solid rgba(233,69,96,0.15);" onclick="goToSection('rescue', 'rescue-actions')">
+                <div style="font-size:40px;margin-bottom:12px;">🤲</div>
+                <div class="font-bold text-detective-accent text-lg mb-2">拯救者行动</div>
+                <div class="text-3xl font-bold text-detective-accent" id="home-rescue-count">0</div>
+                <div class="text-xs text-gray-400 mt-1">累计拯救者行动成就</div>
+            </div>
+            <div class="glass-card p-6 text-center cursor-pointer hover:border-detective-purple/40 transition" style="border:1px solid rgba(155,89,182,0.15);" onclick="goToSection('detective', 'event-reasoning')">
+                <div style="font-size:40px;margin-bottom:12px;">🏆</div>
+                <div class="font-bold text-detective-purple text-lg mb-2">名侦探足迹</div>
+                <div class="text-3xl font-bold text-detective-purple" id="home-detective-score">0</div>
+                <div class="text-xs text-gray-400 mt-1">名侦探成就</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 守护希望之灯 ===== -->
+    <div id="guardian" class="page-content hidden fade-in">
+        <div class="mb-4">
+            <button onclick="navigateToPage('main-hub')" class="text-sm text-gray-500 hover:text-detective-gold transition flex items-center gap-1">
+                <i class="fas fa-arrow-left"></i> 返回首页
+            </button>
+        </div>
+        <div class="glass-card p-3 mb-4">
+            <div class="flex gap-4">
+                <div class="nav-tab active" data-section="charity-lamp"><i class="fas fa-fire mr-1"></i>希望之灯打卡</div>
+                <div class="nav-tab" data-section="bounty-board"><i class="fas fa-gavel mr-1"></i>登记台</div>
+            </div>
+        </div>
+
+        <!-- 希望之灯打卡 -->
+        <div id="charity-lamp-section" class="content-section">
+            <div class="glass-card p-6">
+                <div class="text-center text-sm text-gray-400 mb-4">🔥 传火者善行打卡 — 每日点亮希望之灯</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="text-center p-4 border border-detective-gold/20 rounded-2xl" style="background:linear-gradient(180deg,#fff8e8,#fff);">
+                            <h3 class="text-sm font-bold text-detective-gold mb-2">🔥 传火灯</h3>
+                            <div style="font-size:64px;animation:v2FireFlicker 0.8s ease-in-out infinite;">🔥</div>
+                            <div id="lamp-status-text" class="text-sm font-bold text-detective-gold mt-2">熊熊燃烧</div>
+                            <div class="text-xs text-gray-500 mt-1">连续守护：<span id="consecutive-days">0</span> 天</div>
+                        </div>
+                        <div class="mt-4 p-4 rounded-2xl border border-gray-200" style="background:#f9fafb;">
+                            <div class="flex justify-between"><span class="text-sm text-gray-500">今日善行积分</span><span id="today-points" class="text-2xl font-bold text-detective-gold">0</span></div>
+                            <div class="flex justify-between mt-1"><span class="text-sm text-gray-500">累计善行积分</span><span id="total-points" class="text-xl font-bold text-detective-green">0</span></div>
+                            <div class="flex justify-between mt-1 pt-2 border-t"><span class="text-sm text-gray-500">悬赏积分（总）</span><span id="bounty-points-display" class="text-xl font-bold text-detective-purple">0</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <label class="text-sm text-gray-500">传火者之名：</label>
+                            <input type="text" id="charity-user-name" class="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm" value="造化者月">
+                        </div>
+                        <div class="rounded-2xl p-4 border border-detective-gold/10" style="background:#fffdf5;">
+                            <h4 class="text-sm font-bold text-detective-gold mb-3 flex items-center gap-2"><i class="fas fa-fire"></i> 日行一善</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-2 gap-2" id="daily-actions-grid">
+                                <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-yellow-50 transition border border-gray-200" data-action="news" onclick="doCharityAction('news')">
+                                    <div class="text-2xl mb-1">📰</div>
+                                    <div class="text-xs font-semibold text-gray-700">关注慈善新闻</div>
+                                    <div class="text-xs text-detective-gold mt-1">+1</div>
+                                    <div class="status-dot"></div>
+                                </div>
+                                <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-yellow-50 transition border border-gray-200" data-action="plan" onclick="doCharityAction('plan')">
+                                    <div class="text-2xl mb-1">📝</div>
+                                    <div class="text-xs font-semibold text-gray-700">计划一次善行</div>
+                                    <div class="text-xs text-detective-gold mt-1">+5</div>
+                                    <div class="status-dot"></div>
+                                </div>
+                                <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-yellow-50 transition border border-gray-200" data-action="deed" onclick="doCharityAction('deed')">
+                                    <div class="text-2xl mb-1">🤲</div>
+                                    <div class="text-xs font-semibold text-gray-700">行一善举</div>
+                                    <div class="text-xs text-detective-gold mt-1">+10</div>
+                                    <div class="status-dot"></div>
+                                </div>
+                                <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-yellow-50 transition border border-gray-200" data-action="organize" onclick="doCharityAction('organize')">
+                                    <div class="text-2xl mb-1">🌟</div>
+                                    <div class="text-xs font-semibold text-gray-700">组织慈善活动</div>
+                                    <div class="text-xs text-detective-gold mt-1">+20</div>
+                                    <div class="status-dot"></div>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-400 text-center">💡 每项每日可打卡一次，次日重置</div>
+                        </div>
+                        <!-- 每周前沿探索（由JS动态插入） -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="rounded-2xl p-4 border border-gray-200" style="background:#f9fafb;">
+                                <h4 class="text-xs font-bold text-detective-gold mb-3 flex items-center gap-2"><i class="fas fa-trophy"></i> 传火者明灯榜</h4>
+                                <div id="leaderboard-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                                <div id="my-rank" class="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-400"></div>
+                            </div>
+                            <div class="rounded-2xl p-4 border border-gray-200" style="background:#f9fafb;">
+                                <h4 class="text-xs font-bold text-detective-accent mb-3 flex items-center gap-2"><i class="fas fa-cloud"></i> 本周迷雾事件</h4>
+                                <div id="weekly-event-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 rounded-2xl p-5 border border-detective-gold/10" style="background:linear-gradient(135deg,rgba(245,166,35,0.03),rgba(233,69,96,0.03));">
+                    <div class="text-center">
+                        <div class="text-xs tracking-[0.3em] text-detective-gold/40 font-semibold mb-3">· 希 望 之 灯 与 登 记 台 ·</div>
+                        <p class="text-sm text-gray-600 leading-relaxed max-w-3xl mx-auto" style="font-family: 'KaiTi', '楷体', serif;">登记台是迷雾中的希望之灯点亮的起始之地，是无数侦探解决求助者遭遇的困境，发现探索的前沿信息，并遭遇和探索中的事件记录下来，留下侦探手札，形成供他人探索的侦探故事的起点。</p>
+                        <div class="mt-4 flex justify-center gap-3 flex-wrap">
+                            <button onclick="goToSection('guardian','bounty-board')" class="px-5 py-2 rounded-full bg-detective-gold/15 border border-detective-gold/30 text-detective-gold text-xs font-semibold hover:bg-detective-gold/25 transition">📜 前往登记台揭榜</button>
+                            <button onclick="goToSection('rescue','rescue-actions')" class="px-5 py-2 rounded-full bg-detective-green/15 border border-detective-green/30 text-detective-green text-xs font-semibold hover:bg-detective-green/25 transition">🤲 参与拯救行动</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 text-center text-xs text-gray-400">登记台是迷雾中的希望之灯点亮的起始之地，是无数侦探解决求助者遭遇的困境的起点。</div>
+            </div>
+        </div>
+
+        <!-- 登记台 -->
+        <div id="bounty-board-section" class="content-section hidden">
+            <div class="glass-card p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold flex items-center">
+                        <i class="fas fa-gavel text-detective-gold mr-2"></i>尘封问题悬赏
+                    </h2>
+                </div>
+                <!-- Top 4 Leaderboard -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold mb-3 flex items-center">
+                        <i class="fas fa-crown text-detective-gold mr-2"></i>悬赏榜单（积分前4自动上榜）
+                    </h3>
+                    <div id="bounty-leaderboard" class="bounty-board"></div>
+                </div>
+                <!-- Sub-tabs -->
+                <div class="bounty-sub-tabs">
+                    <div class="bounty-sub-tab active" data-bounty-tab="reveal-list"><i class="fas fa-list-alt"></i>揭榜查看</div>
+                    <div class="bounty-sub-tab" data-bounty-tab="submit-task"><i class="fas fa-feather-alt"></i>任务投简</div>
+                    <div class="bounty-sub-tab" data-bounty-tab="bounty-eval"><i class="fas fa-coins"></i>赏金评估</div>
+                    <div class="bounty-sub-tab" data-bounty-tab="track-progress"><i class="fas fa-route"></i>完成追踪</div>
+                    <div class="bounty-sub-tab" data-bounty-tab="reward-exchange"><i class="fas fa-gift"></i>奖励发放</div>
+                    <div class="bounty-sub-tab" data-bounty-tab="registry-log"><i class="fas fa-book-open"></i>登记台笔记</div>
+                </div>
+
+                <!-- 揭榜查看 -->
+                <div id="bounty-tab-reveal-list" class="bounty-sub-content active">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h3 class="text-lg font-bold"><i class="fas fa-list-alt text-detective-gold mr-2"></i>全部待完成任务</h3>
+                        <div class="flex gap-2 text-xs">
+                            <span class="bounty-status bounty-status-pending">待领取</span>
+                            <span class="bounty-status bounty-status-progress">进行中</span>
+                            <span class="bounty-status bounty-status-completed">已完成</span>
+                        </div>
+                    </div>
+                    <div id="bounty-all-tasks"></div>
+                </div>
+
+                <!-- 任务投简 -->
+                <div id="bounty-tab-submit-task" class="bounty-sub-content">
+                    <h3 class="text-lg font-bold mb-4"><i class="fas fa-feather-alt text-detective-gold mr-2"></i>在竹片上书写新任务</h3>
+                    <div class="bamboo-slip mb-4">
+                        <label class="bamboo-slip-label"><i class="fas fa-pen-nib mr-1"></i>任务标题</label>
+                        <input type="text" id="bounty-task-title" class="bamboo-slip-input" style="min-height:auto;margin-bottom:14px;" placeholder="请输入任务标题...">
+                        <label class="bamboo-slip-label"><i class="fas fa-scroll mr-1"></i>任务详情</label>
+                        <textarea id="bounty-task-desc" class="bamboo-slip-input" placeholder="任务描述..."></textarea>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="bamboo-slip-label"><i class="fas fa-calendar-alt mr-1"></i>截止日期</label>
+                                <input type="date" id="bounty-task-deadline" class="bamboo-slip-input" style="min-height:auto;">
+                            </div>
+                            <div>
+                                <label class="bamboo-slip-label"><i class="fas fa-tag mr-1"></i>任务类型</label>
+                                <select id="bounty-task-type" class="bamboo-slip-input" style="min-height:auto;">
+                                    <option value="investigation">调查任务</option>
+                                    <option value="decryption">破译任务</option>
+                                    <option value="analysis">分析任务</option>
+                                    <option value="exploration">探索任务</option>
+                                    <option value="rescue">拯救任务</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="submit-bamboo-task" class="btn-primary w-full"><i class="fas fa-paper-plane mr-2"></i>投简发布</button>
+                    <div class="mt-6">
+                        <h4 class="text-sm font-bold mb-3 text-detective-gold"><i class="fas fa-history mr-1"></i>最近投简的任务</h4>
+                        <div id="recent-submitted-tasks" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- 赏金评估 -->
+                <div id="bounty-tab-bounty-eval" class="bounty-sub-content">
+                    <h3 class="text-lg font-bold mb-2"><i class="fas fa-coins text-detective-gold mr-2"></i>赏金评估与任务整合</h3>
+                    <p class="text-sm text-gray-400 mb-4">选择多个独立任务整合为一个大任务下的子任务，并设置悬赏积分。</p>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-bold mb-3 text-detective-gold">第1步：选择要整合的任务</h4>
+                        <div id="bounty-eval-task-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-bold mb-3 text-detective-gold">第2步：设置大任务信息</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">大任务标题</label>
+                                <input type="text" id="parent-task-title" class="form-input" placeholder="如：古文明遗迹综合调查">
+                            </div>
+                            <div>
+                                <label class="form-label">悬赏积分</label>
+                                <input type="number" id="parent-task-bounty" class="form-input" placeholder="如：1000" min="0">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">大任务描述</label>
+                            <textarea id="parent-task-desc" class="form-input" rows="2" placeholder="描述这个大任务的整体目标..."></textarea>
+                        </div>
+                    </div>
+                    <button id="merge-tasks-btn" class="btn-primary w-full"><i class="fas fa-object-group mr-2"></i>整合任务并设置赏金</button>
+                    <div class="mt-6">
+                        <h4 class="text-sm font-bold mb-3 text-detective-gold"><i class="fas fa-mail-bulk mr-1"></i>投简者信箱</h4>
+                        <div id="submitter-mailbox" class="space-y-3"></div>
+                    </div>
+                    <div class="mt-6">
+                        <h4 class="text-sm font-bold mb-3 text-detective-gold"><i class="fas fa-layer-group mr-1"></i>已有大任务</h4>
+                        <div id="parent-tasks-list" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- 完成追踪 -->
+                <div id="bounty-tab-track-progress" class="bounty-sub-content">
+                    <h3 class="text-lg font-bold mb-4"><i class="fas fa-route text-detective-gold mr-2"></i>任务完成追踪</h3>
+                    <div id="bounty-tracking-container"></div>
+                </div>
+
+                <!-- 奖励发放 -->
+                <div id="bounty-tab-reward-exchange" class="bounty-sub-content">
+                    <h3 class="text-lg font-bold mb-2"><i class="fas fa-gift text-detective-gold mr-2"></i>积分兑换奖励</h3>
+                    <p class="text-sm text-gray-400 mb-4">完成悬赏任务获得的积分可在此兑换奖励产品。</p>
+                    <div class="bg-gradient-to-r from-detective-accent/20 to-detective-gold/20 rounded-lg p-4 mb-6 border border-detective-gold/30">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-gray-400">当前可用积分</div>
+                                <div id="user-bounty-points" class="bounty-points-display">0</div>
+                            </div>
+                            <i class="fas fa-coins text-4xl text-detective-gold opacity-50"></i>
+                        </div>
+                    </div>
+                    <div id="reward-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                    <div class="mt-6">
+                        <h4 class="text-sm font-bold mb-3 text-detective-gold"><i class="fas fa-history mr-1"></i>兑换记录</h4>
+                        <div id="exchange-history" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- 登记台笔记 -->
+                <div id="bounty-tab-registry-log" class="bounty-sub-content">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold"><i class="fas fa-book-open text-detective-purple mr-2"></i>登记台笔记</h3>
+                            <p class="text-sm text-gray-400 mt-1">登记台曾是迷雾中的传火之地，是侦探们和赏金猎人们大展身手的起点。</p>
+                        </div>
+                        <button onclick="exportRegistryTxt()" class="btn-primary flex-shrink-0" style="white-space:nowrap;">
+                            <i class="fas fa-download mr-2"></i>誊抄为txt
+                        </button>
+                    </div>
+                    <div id="registry-log-container" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 拯救行动（占位） ===== -->
+    <div id="rescue" class="page-content hidden fade-in">
+        <div class="glass-card p-6 text-center">
+            <h2 class="text-xl font-bold">🤲 拯救行动</h2>
+            <p class="text-gray-500 mt-2">内容开发中...</p>
+        </div>
+    </div>
+
+    <!-- ===== 名侦探足迹（占位） ===== -->
+    <div id="detective" class="page-content hidden fade-in">
+        <div class="glass-card p-6 text-center">
+            <h2 class="text-xl font-bold">🏆 名侦探足迹</h2>
+            <p class="text-gray-500 mt-2">内容开发中...</p>
+        </div>
+    </div>
+
+</main>
+
+<!-- ===== Admin Panel ===== -->
+<div class="admin-panel">
+    <button id="admin-toggle" class="admin-toggle"><i class="fas fa-cog"></i></button>
+    <div id="admin-menu" class="admin-menu">
+        <div class="admin-menu-item" id="toggle-edit-mode"><i class="fas fa-edit"></i><span>切换编辑模式</span></div>
+        <div class="admin-menu-item" id="export-data"><i class="fas fa-download"></i><span>导出数据</span></div>
+        <div class="admin-menu-item" id="import-data"><i class="fas fa-upload"></i><span>导入数据</span></div>
+        <div class="admin-menu-item" id="reset-data"><i class="fas fa-trash"></i><span>重置数据</span></div>
+        <div class="admin-menu-item" id="save-data"><i class="fas fa-save"></i><span>保存数据</span></div>
+    </div>
+</div>
+
+<!-- ===== Modal ===== -->
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="flex items-center justify-between mb-6">
+            <h2 id="modal-title" class="text-2xl font-bold">编辑内容</h2>
+            <button id="close-edit-modal" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="edit-form" class="space-y-4">
+            <div id="form-fields"></div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" id="cancel-edit" class="btn-secondary">取消</button>
+                <button type="submit" class="btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<input type="file" id="file-input" accept=".json" style="display: none;">
+
+<!-- ===== JavaScript ===== -->
+<script>
+// ========== 数据 ==========
+const defaultData = {
+    bountyTasks: [
+        { id: 1, title: '迷雾世界线索笔记体系搭建', description: '投简人：清言🔍 · 拟付积分200', bounty: 200, status: 'pending', createdAt: '2026-08-11' },
+        { id: 2, title: '网站优化', description: '完善网站体系', bounty: 0, status: 'pending', createdAt: '2026-08-11' },
+        { id: 3, title: '沉积的库房探索整理', description: '库房已经很久没有整理过了', bounty: 0, status: 'pending', createdAt: '2026-08-11' }
+    ],
+    registryLog: [
+        { id: 1, date: '2026-08-11', time: '辰时', title: '登记台重启', narrative: '登记台曾是迷雾中的传火之地，是侦探们和赏金猎人们大展身手的起点。', operator: '记录人' }
+    ],
+    userPoints: 0,
+    exchangeHistory: [],
+    bountyParentTasks: [],
+    worldEvents: [],
+    charityData: {
+        lightStatus: 'lit',
+        consecutiveDays: 0,
+        lastCheckIn: null,
+        todayPoints: 0,
+        totalPoints: 0,
+        dailyActions: {},
+        weeklyActions: {},
+        lastWeekKey: null
+    }
+};
+
+let appData = loadData();
+let editMode = false;
+
+function loadData() {
+    try {
+        const saved = localStorage.getItem('detectiveData');
+        if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return JSON.parse(JSON.stringify(defaultData));
+}
+
+function saveData() {
+    localStorage.setItem('detectiveData', JSON.stringify(appData));
+}
+
+function showNotification(msg, type='info') {
+    const el = document.createElement('div');
+    el.className = `notification ${type}`;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => { el.remove(); }, 3000);
+}
+
+// ========== 每周前沿探索 HTML ==========
+const WEEKLY_FRONTIER_HTML = `
+    <div class="weekly-frontier-module rounded-2xl p-5 border border-detective-green/10 mt-4" style="background:#f0fdf4;">
+        <h4 class="text-sm font-bold text-detective-green mb-3 flex items-center gap-2">
+            <i class="fas fa-rocket"></i> 每周前沿探索
+            <span class="text-xs text-gray-400 font-normal ml-1">（每周可打卡一次）</span>
+        </h4>
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-3">
+            <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-green-50 transition border border-gray-200" data-action="frontier-read" onclick="doCharityAction('frontier-read')">
+                <div class="text-2xl mb-1">📖</div>
+                <div class="text-xs font-semibold text-gray-700">阅读最新前沿信息</div>
+                <div class="text-xs text-detective-green mt-1">+3</div>
+                <div class="status-dot"></div>
+            </div>
+            <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-green-50 transition border border-gray-200" data-action="frontier-practice" onclick="doCharityAction('frontier-practice')">
+                <div class="text-2xl mb-1">🔬</div>
+                <div class="text-xs font-semibold text-gray-700">开展前沿应用实践</div>
+                <div class="text-xs text-detective-green mt-1">+8</div>
+                <div class="status-dot"></div>
+            </div>
+            <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-green-50 transition border border-gray-200" data-action="frontier-visit" onclick="doCharityAction('frontier-visit')">
+                <div class="text-2xl mb-1">🤝</div>
+                <div class="text-xs font-semibold text-gray-700">走访新的群体</div>
+                <div class="text-xs text-detective-green mt-1">+6</div>
+                <div class="status-dot"></div>
+            </div>
+            <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-green-50 transition border border-gray-200" data-action="frontier-cross" onclick="doCharityAction('frontier-cross')">
+                <div class="text-2xl mb-1">💡</div>
+                <div class="text-xs font-semibold text-gray-700">获得跨界知识</div>
+                <div class="text-xs text-detective-green mt-1">+6</div>
+                <div class="status-dot"></div>
+            </div>
+            <div class="action-card bg-white rounded-xl p-3 text-center cursor-pointer hover:bg-green-50 transition md:col-span-2 border border-gray-200" data-action="frontier-solve" onclick="doCharityAction('frontier-solve')">
+                <div class="text-2xl mb-1">🌍</div>
+                <div class="text-xs font-semibold text-gray-700">解决困境和群体性的问题，构建美好的未来生活</div>
+                <div class="text-xs text-detective-green mt-1">+15</div>
+                <div class="status-dot"></div>
+            </div>
+        </div>
+    </div>
+`;
+
+// ========== 插入模块 ==========
+function insertEveryGoodDeedLabel() {
+    if (document.querySelector('.every-good-deed-label')) return true;
+    const target = document.getElementById('charity-user-name');
+    if (!target) return false;
+    if (target.dataset.hasLabel === 'true') return true;
+    target.insertAdjacentHTML('afterend', `
+        <div class="every-good-deed-label text-xs text-detective-gold/60 mt-1 mb-2">✦ 每一善行，皆为传火之光</div>
+    `);
+    target.dataset.hasLabel = 'true';
+    return true;
+}
+
+function insertWeeklyFrontier() {
+    if (document.querySelector('.weekly-frontier-module')) return true;
+    const target = document.querySelector('#daily-actions-grid');
+    if (!target) return false;
+    if (target.dataset.hasFrontier === 'true') return true;
+    target.insertAdjacentHTML('afterend', WEEKLY_FRONTIER_HTML);
+    target.dataset.hasFrontier = 'true';
+    return true;
+}
+
+function initGuardianModules() {
+    insertEveryGoodDeedLabel();
+    insertWeeklyFrontier();
+}
+
+// ========== 导航函数 ==========
+function navigateToPage(pageId) {
+    document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+    const page = document.getElementById(pageId);
+    if (page) { page.classList.remove('hidden'); page.classList.add('fade-in'); }
+    document.querySelectorAll('.nav-tab[data-page]').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.nav-tab[data-page="${pageId}"]`)?.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (pageId === 'guardian') setTimeout(initGuardianModules, 200);
+}
+
+function goToSection(pageName, sectionName) {
+    navigateToPage(pageName);
+    if (sectionName) {
+        document.querySelectorAll('.nav-tab[data-section]').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+        const targetTab = document.querySelector(`.nav-tab[data-section="${sectionName}"]`);
+        if (targetTab) targetTab.classList.add('active');
+        const targetSection = document.getElementById(sectionName + '-section');
+        if (targetSection) { targetSection.classList.remove('hidden'); targetSection.classList.add('fade-in'); }
+    }
+    if (pageName === 'guardian') setTimeout(initGuardianModules, 200);
+}
+
+function switchSubTab(pageName, sectionName) { goToSection(pageName, sectionName); }
+
+function skipIntro() {
+    const overlay = document.getElementById('v2-intro');
+    if (overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 500); }
+}
+
+// ========== 善行打卡 ==========
+function doCharityAction(actionType) {
+    const pointsMap = { 
+        news: 1, plan: 5, deed: 10, organize: 20,
+        'frontier-read': 3, 'frontier-practice': 8, 
+        'frontier-visit': 6, 'frontier-cross': 6, 'frontier-solve': 15
+    };
+    const labelMap = {
+        news: '关注慈善新闻', plan: '计划善行', deed: '行一善举', organize: '组织慈善',
+        'frontier-read': '阅读前沿信息', 'frontier-practice': '前沿应用实践',
+        'frontier-visit': '走访新群体', 'frontier-cross': '跨界知识', 'frontier-solve': '解决困境'
+    };
+    const points = pointsMap[actionType] || 1;
+    const label = labelMap[actionType] || actionType;
+    
+    const card = document.querySelector(`[data-action="${actionType}"]`);
+    if (card && card.classList.contains('done')) {
+        showNotification('今日已打卡该项，明天再来吧 💡', 'info');
+        return;
+    }
+    if (card) card.classList.add('done');
+    
+    const todayEl = document.getElementById('today-points');
+    const totalEl = document.getElementById('total-points');
+    const homeEl = document.getElementById('home-today-points');
+    const daysEl = document.getElementById('consecutive-days');
+    if (todayEl) todayEl.textContent = parseInt(todayEl.textContent) + points;
+    if (totalEl) totalEl.textContent = parseInt(totalEl.textContent) + points;
+    if (homeEl) homeEl.textContent = parseInt(homeEl.textContent) + points;
+    if (daysEl) daysEl.textContent = parseInt(daysEl.textContent) + 1;
+    
+    appData.charityData.todayPoints = (appData.charityData.todayPoints || 0) + points;
+    appData.charityData.totalPoints = (appData.charityData.totalPoints || 0) + points;
+    appData.charityData.consecutiveDays = (appData.charityData.consecutiveDays || 0) + 1;
+    appData.userPoints = (appData.userPoints || 0) + points;
+    saveData();
+    
+    showNotification(`✅ ${label} 打卡成功！+${points} 积分`, 'success');
+}
+
+// ========== 渲染函数 ==========
+function renderBountySection() {
+    const container = document.getElementById('bounty-all-tasks');
+    if (!container) return;
+    const tasks = appData.bountyTasks || [];
+    if (tasks.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-400 text-sm py-4">暂无任务</div>';
+        return;
+    }
+    const statusMap = { pending: '待领取', progress: '进行中', completed: '已完成' };
+    container.innerHTML = tasks.map(t => `
+        <div class="task-list-item">
+            <div>
+                <div class="font-bold text-sm">${t.title}</div>
+                <div class="text-xs text-gray-400">${t.description || ''} · 积分 ${t.bounty || 0}</div>
+                <div class="text-xs text-gray-400">${t.createdAt || ''} · ${statusMap[t.status] || '待领取'}</div>
+            </div>
+            ${t.status === 'pending' ? `<button class="btn-primary text-xs px-3 py-1 rounded-lg" onclick="acceptTask(${t.id})">领取</button>` : ''}
+            ${t.status === 'progress' ? `<button class="btn-secondary text-xs px-3 py-1 rounded-lg" onclick="completeTask(${t.id})">完成</button>` : ''}
+            ${t.status === 'completed' ? `<span class="text-detective-green text-sm">✅ 已完成</span>` : ''}
+        </div>
+    `).join('');
+}
+
+function renderRegistryLog() {
+    const container = document.getElementById('registry-log-container');
+    if (!container) return;
+    const logs = appData.registryLog || [];
+    if (logs.length === 0) {
+        container.innerHTML = '<div class="text-gray-400 text-xs">暂无笔记</div>';
+        return;
+    }
+    container.innerHTML = logs.slice(-5).reverse().map(log => `
+        <div class="p-2 rounded border border-gray-100 bg-white/50">
+            <div class="text-xs font-bold">${log.title}</div>
+            <div class="text-xs text-gray-400">${log.narrative?.substring(0, 60) || ''}${(log.narrative?.length || 0) > 60 ? '…' : ''}</div>
+            <div class="text-xs text-gray-300">${log.date} · ${log.operator || ''}</div>
+        </div>
+    `).join('');
+}
+
+function renderCharityLamp() {
+    const data = appData.charityData;
+    if (!data) return;
+    document.getElementById('today-points').textContent = data.todayPoints || 0;
+    document.getElementById('total-points').textContent = data.totalPoints || 0;
+    document.getElementById('bounty-points-display').textContent = appData.userPoints || 0;
+    document.getElementById('consecutive-days').textContent = data.consecutiveDays || 0;
+    document.getElementById('home-today-points').textContent = data.todayPoints || 0;
+    document.getElementById('home-rescue-count').textContent = (appData.bountyTasks || []).filter(t => t.status === 'completed').length;
+    document.getElementById('home-detective-score').textContent = appData.userPoints || 0;
+}
+
+function renderAll() {
+    renderBountySection();
+    renderRegistryLog();
+    renderCharityLamp();
+}
+
+// ========== 任务操作 ==========
+function acceptTask(id) {
+    const task = appData.bountyTasks.find(t => t.id === id);
+    if (task) { task.status = 'progress'; saveData(); renderAll(); showNotification('已领取任务', 'success'); }
+}
+
+function completeTask(id) {
+    const task = appData.bountyTasks.find(t => t.id === id);
+    if (task) {
+        task.status = 'completed';
+        appData.userPoints = (appData.userPoints || 0) + (task.bounty || 0);
+        saveData(); renderAll(); showNotification(`任务完成！+${task.bounty || 0} 积分`, 'success');
+    }
+}
+
+// ========== Admin ==========
+document.getElementById('admin-toggle').addEventListener('click', () => {
+    document.getElementById('admin-menu').classList.toggle('active');
+});
+
+document.getElementById('toggle-edit-mode').addEventListener('click', () => {
+    editMode = !editMode;
+    document.getElementById('edit-mode-indicator').classList.toggle('hidden', !editMode);
+    showNotification(editMode ? '编辑模式已开启' : '编辑模式已关闭', 'info');
+    document.getElementById('admin-menu').classList.remove('active');
+});
+
+document.getElementById('export-data').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'detective_data.json';
+    a.click();
+    document.getElementById('admin-menu').classList.remove('active');
+});
+
+document.getElementById('import-data').addEventListener('click', () => {
+    document.getElementById('file-input').click();
+    document.getElementById('admin-menu').classList.remove('active');
+});
+
+document.getElementById('file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        try {
+            appData = JSON.parse(ev.target.result);
+            saveData(); renderAll();
+            showNotification('数据导入成功', 'success');
+        } catch(err) {
+            showNotification('导入失败', 'error');
+        }
+    };
+    reader.readAsText(file);
+});
+
+document.getElementById('reset-data').addEventListener('click', () => {
+    if (!confirm('确定重置所有数据？')) return;
+    appData = JSON.parse(JSON.stringify(defaultData));
+    saveData(); renderAll();
+    showNotification('已重置', 'info');
+    document.getElementById('admin-menu').classList.remove('active');
+});
+
+document.getElementById('save-data').addEventListener('click', () => {
+    saveData();
+    showNotification('数据已保存', 'success');
+    document.getElementById('admin-menu').classList.remove('active');
+});
+
+document.getElementById('close-edit-modal').addEventListener('click', () => {
+    document.getElementById('edit-modal').classList.remove('active');
+});
+document.getElementById('cancel-edit').addEventListener('click', () => {
+    document.getElementById('edit-modal').classList.remove('active');
+});
+
+// ========== 导航事件 ==========
+document.querySelectorAll('.nav-tab[data-page]').forEach(tab => {
+    tab.addEventListener('click', () => {
+        navigateToPage(tab.dataset.page);
+    });
+});
+
+document.querySelectorAll('.nav-tab[data-section]').forEach(tab => {
+    tab.addEventListener('click', () => {
+        const section = tab.dataset.section;
+        document.querySelectorAll('.nav-tab[data-section]').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+        const target = document.getElementById(section + '-section');
+        if (target) { target.classList.remove('hidden'); target.classList.add('fade-in'); }
+        if (section === 'charity-lamp') setTimeout(initGuardianModules, 200);
+    });
+});
+
+// ========== 页面初始化 ==========
+document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+document.getElementById('main-hub').classList.remove('hidden');
+renderAll();
+
+// 引导动画
+setTimeout(() => {
+    const overlay = document.getElementById('v2-intro');
+    if (overlay && !sessionStorage.getItem('introSeen')) {
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; sessionStorage.setItem('introSeen', '1'); }, 500);
+        }, 1000);
+    } else if (overlay) {
+        overlay.style.display = 'none';
+    }
+}, 500);
+
+console.log('📦 知识大侦探已加载');
+</script>
+
+</body>
+</html>
